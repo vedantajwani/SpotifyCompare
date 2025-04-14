@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Spotify‑Compare</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="utf-8">
+  <title>Spotify Compare</title>
+  <!-- <link rel="stylesheet" href="css/style.css"> -->
 </head>
 <body>
-  <h1>Spotify‑Compare</h1>
-  <div id="viz"></div>
+  <h1>Compare Two Spotify Profiles</h1>
+  <button id="connect-user1">Connect User 1</button>
+  <button id="connect-user2">Connect User 2</button>
+  <div id="venn"></div>
 
-  <!-- D3.js -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <!-- Your code -->
-  <script src="src/data.js"></script>
-  <script src="src/app.js"></script>
+  <!-- 1) Load D3 globally -->
+  <script src="assets/d3.min.js"></script>
+  <!-- 2) Then load your ES module that uses it -->
+  <script type="module" src="js/compare.js"></script>
 </body>
 </html>

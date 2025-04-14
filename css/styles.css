@@ -1,0 +1,13 @@
+/* css/style.css */
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 2rem;
+}
+button {
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem;
+}
+#venn {
+  margin-top: 2rem;
+}
