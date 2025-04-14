@@ -1,0 +1,32 @@
+{
+  "name": "spotifycompare",
+  "version": "1.0.0",
+  "description": "Visualize and compare Spotify user data with D3.js.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "live-server --open=./index.html",        
+    "start:backend": "node backend/index.js",           
+    "dev:backend": "nodemon backend/index.js"          
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vedantajwani/SpotifyCompare.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vedantajwani/SpotifyCompare/issues"
+  },
+  "homepage": "https://github.com/vedantajwani/SpotifyCompare#readme",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^3.3.2"
+  }
+}
