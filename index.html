@@ -3,17 +3,36 @@
 <head>
   <meta charset="utf-8">
   <title>Spotify Compare</title>
-  <!-- <link rel="stylesheet" href="css/style.css"> -->
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <h1>Compare Two Spotify Profiles</h1>
-  <button id="connect-user1">Connect User 1</button>
-  <button id="connect-user2">Connect User 2</button>
-  <div id="venn"></div>
+  <button id="connect-user1">Connect User 1</button>
+  <button id="connect-user2">Connect User 2</button>
+  <button id="compare-button" disabled>Compare Profiles</button>
 
-  <!-- 1) Load D3 globally -->
-  <script src="assets/d3.min.js"></script>
-  <!-- 2) Then load your ES module that uses it -->
+  <h2>Artists Data</h2>
+  <pre id="artists-data"></pre>
+
+  <h2>Tracks Data</h2>
+  <pre id="tracks-data"></pre>
+
+  <h2>Genres Data</h2>
+  <pre id="genres-data"></pre>
+
+  <h2>Common Artists</h2>
+<pre id="common-artists"></pre>
+
+<h2>Common Tracks</h2>
+<pre id="common-tracks"></pre>
+
+<h2>Common Genres</h2>
+<pre id="common-genres"></pre>
+
+  <!-- your modules -->
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/spotify.js"></script>
+  <script type="module" src="js/compareArtists.js"></script>
   <script type="module" src="js/compare.js"></script>
 </body>
 </html>

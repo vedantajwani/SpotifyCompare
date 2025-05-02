@@ -1,13 +1,39 @@
-/* css/style.css */
+/* css/styles.css */
+
 body {
   font-family: sans-serif;
-  text-align: center;
   margin: 2rem;
 }
-button {
-  padding: 0.5rem 1rem;
-  margin: 0 0.5rem;
+
+h1, h2 {
+  text-align: center;
 }
-#venn {
-  margin-top: 2rem;
+
+.top-tracks .track {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+svg {
+  font: 10px sans-serif;
+}
+
+.bar {
+  stroke: #fff;
+  stroke-width: 1px;
+}
+
+/* user1 bars */
+.bar.user1 {
+  fill: steelblue;
+}
+
+/* user2 bars */
+.bar.user2 {
+  fill: tomato;
+}
+
+.axis--x text {
+  text-anchor: end;
+  transform: rotate(-45deg);
 }
