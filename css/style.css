@@ -1,0 +1,89 @@
+/* SpotifyCompare CSS */
+
+/* Tooltip styles */
+.tooltip {
+  position: absolute;
+  padding: 10px;
+  background: rgba(30, 30, 30, 0.9);
+  color: #fff;
+  border: 1px solid #1DB954;
+  border-radius: 5px;
+  pointer-events: none;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  max-width: 300px;
+}
+
+.tooltip-header {
+  font-weight: 600;
+  color: #1DB954;
+  margin-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 5px;
+}
+
+.tooltip-content {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tooltip-item {
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tooltip-item:last-child {
+  border-bottom: none;
+}
+
+/* Visualization container styles */
+#venn-container, #bar-container {
+  background: rgba(30, 30, 30, 0.5);
+  border-radius: 10px;
+  margin: 20px 0;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Axis styling for charts */
+.axis path,
+.axis line {
+  stroke: #666;
+}
+
+.axis text {
+  fill: #ccc;
+}
+
+/* Checkbox toggle styles */
+.checkbox-toggle input:checked ~ .checkmark {
+  background: #1DB954;
+}
+
+/* Button styles */
+button {
+  background: linear-gradient(135deg, #1DB954 0%, #169c45 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 10px;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #2EE566 0%, #1DB954 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

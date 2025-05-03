@@ -1,0 +1,22 @@
+[
+  {"name": "Drake", "popularity": 95},
+  {"name": "Travis Scott", "popularity": 92},
+  {"name": "Future", "popularity": 90},
+  {"name": "OHGEESY", "popularity": 85},
+  {"name": "Kendrick Lamar", "popularity": 94},
+  {"name": "J. Cole", "popularity": 91},
+  {"name": "Lil Baby", "popularity": 89},
+  {"name": "The Weeknd", "popularity": 96},
+  {"name": "Gunna", "popularity": 88},
+  {"name": "21 Savage", "popularity": 90},
+  {"name": "Young Thug", "popularity": 89},
+  {"name": "Kanye West", "popularity": 92},
+  {"name": "Lil Uzi Vert", "popularity": 88},
+  {"name": "A$AP Rocky", "popularity": 87},
+  {"name": "Tyler, The Creator", "popularity": 89},
+  {"name": "Post Malone", "popularity": 93},
+  {"name": "Kid Cudi", "popularity": 86},
+  {"name": "Frank Ocean", "popularity": 88},
+  {"name": "SZA", "popularity": 90},
+  {"name": "Playboi Carti", "popularity": 87}
+]

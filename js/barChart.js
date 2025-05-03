@@ -88,9 +88,9 @@ export function drawBarCharts(data1, data2) {
   // Sort artists by total count (sum of both users)
   allArtists.sort((a, b) => {
     const countA = (top10User1.find(d => d.name === a)?.count || 0) + 
-                   (top10User2.find(d => d.name === b)?.count || 0);
-    const countB = (top10User1.find(d => d.name === b)?.count || 0) + 
                    (top10User2.find(d => d.name === a)?.count || 0);
+    const countB = (top10User1.find(d => d.name === b)?.count || 0) + 
+                   (top10User2.find(d => d.name === b)?.count || 0);
     return countB - countA;
   });
   
@@ -259,21 +259,21 @@ export function drawBarCharts(data1, data2) {
       d3.selectAll('.tooltip').remove();
     });
   
-  // Add legend with metallic styling
+  // Add legend
   const legend = svg.append('g')
-    .attr('transform', `translate(${width - 120}, -30)`);
+    .attr('transform', `translate(${width - 200}, -40)`);
   
   // User 1 legend
   legend.append('rect')
-    .attr('width', 18)
-    .attr('height', 18)
+    .attr('width', 20)
+    .attr('height', 10)
     .attr('rx', 3)
     .attr('ry', 3)
     .attr('fill', 'url(#bar-gradient-user1)');
   
   legend.append('text')
-    .attr('x', 24)
-    .attr('y', 14)
+    .attr('x', 30)
+    .attr('y', 9)
     .text('User 1')
     .style('font-family', 'Montserrat, sans-serif')
     .style('font-size', '12px')
@@ -281,16 +281,16 @@ export function drawBarCharts(data1, data2) {
   
   // User 2 legend
   legend.append('rect')
-    .attr('width', 18)
-    .attr('height', 18)
+    .attr('width', 20)
+    .attr('height', 10)
     .attr('rx', 3)
     .attr('ry', 3)
-    .attr('fill', 'url(#bar-gradient-user2)')
-    .attr('y', 24);
+    .attr('y', 20)
+    .attr('fill', 'url(#bar-gradient-user2)');
   
   legend.append('text')
-    .attr('x', 24)
-    .attr('y', 38)
+    .attr('x', 30)
+    .attr('y', 29)
     .text('User 2')
     .style('font-family', 'Montserrat, sans-serif')
     .style('font-size', '12px')
@@ -299,15 +299,21 @@ export function drawBarCharts(data1, data2) {
 
 // Helper function to get top items with counts
 function getTopItems(data, limit) {
-  // Count occurrences of each item
-  const counts = {};
+  // Extract artist or track names and counts from CSV data
+  const items = {};
+  
   data.forEach(item => {
-    counts[item] = (counts[item] || 0) + 1;
+    const name = item.artist || item.track || '';
+    const count = parseInt(item.count) || 1;
+    
+    if (name) {
+      items[name] = (items[name] || 0) + count;
+    }
   });
   
   // Convert to array and sort
-  const sortedItems = Object.keys(counts)
-    .map(name => ({ name, count: counts[name] }))
+  const sortedItems = Object.keys(items)
+    .map(name => ({ name, count: items[name] }))
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);
   

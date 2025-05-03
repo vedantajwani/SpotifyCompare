@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Spotify Compare - Embedded Data</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #ffffff;
+      background: linear-gradient(135deg, #2b2b2b 0%, #1e1e1e 100%);
+      background-attachment: fixed;
+    }
+    
+    h1 {
+      color: #1DB954;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .viz-container {
+      background: rgba(30, 30, 30, 0.5);
+      border-radius: 10px;
+      margin: 20px 0;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .venn-section {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+    }
+    
+    .venn-diagram {
+      flex: 1;
+    }
+    
+    .track-list-container {
+      flex: 1;
+      background: rgba(20, 20, 20, 0.7);
+      border-radius: 10px;
+      padding: 15px;
+      max-height: 500px;
+      overflow-y: auto;
+      border: 1px solid rgba(29, 185, 84, 0.3);
+    }
+    
+    .track-list-title {
+      color: #1DB954;
+      margin-top: 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .track-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .track-item {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .track-name {
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    .track-artist {
+      font-size: 0.9em;
+      color: #aaa;
+    }
+    
+    circle {
+      opacity: 0.7;
+      stroke-width: 2px;
+      transition: opacity 0.3s ease;
+    }
+    
+    circle:hover {
+      opacity: 0.9;
+      cursor: pointer;
+    }
+    
+    .circle-user1 {
+      fill: #1DB954;
+      stroke: #1DB954;
+    }
+    
+    .circle-user2 {
+      fill: #191414;
+      stroke: #444444;
+    }
+    
+    .interaction-area {
+      fill: transparent;
+      cursor: pointer;
+    }
+    
+    .interaction-area:hover {
+      fill: rgba(255, 255, 255, 0.05);
+    }
+    
+    .bar-user1 {
+      fill: #1DB954;
+    }
+    
+    .bar-user2 {
+      fill: #191414;
+    }
+    
+    text {
+      fill: white;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .axis path,
+    .axis line {
+      stroke: #666;
+    }
+    
+    .axis text {
+      fill: #ccc;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Spotify Compare</h1>
+    
+    <h2>Track Comparison</h2>
+    <div class="venn-section">
+      <div id="venn-container" class="venn-diagram viz-container"></div>
+      <div class="track-list-container">
+        <h3 id="track-list-title" class="track-list-title">Select a section in the Venn diagram</h3>
+        <ul id="track-list" class="track-list">
+          <li class="track-item">Click on a circle in the Venn diagram to see tracks</li>
+        </ul>
+      </div>
+    </div>
+    
+    <h2>Artist Frequency Comparison</h2>
+    <div id="bar-container" class="viz-container"></div>
+  </div>
+  
+  <!-- Load D3.js directly from CDN -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  
+  <script>
+    // Embedded sample data (just a few items for demonstration)
+    const sampleUser1Tracks = [
+      { Track: "CtrlAltDelete", Artists: "BONES", Genres: "dark trap;cloud rap;emo rap" },
+      { Track: "Mast Magan", Artists: "Arijit Singh;Chinmayi", Genres: "hindi pop;bollywood" },
+      { Track: "Big in Japan", Artists: "Alphaville", Genres: "synthpop" },
+      { Track: "Epiphany", Artists: "Ross from Friends", Genres: "lo-fi house" },
+      { Track: "Shared Track 1", Artists: "Common Artist", Genres: "pop" },
+      { Track: "Shared Track 2", Artists: "Another Common Artist", Genres: "rock" }
+    ];
+    
+    const sampleUser2Tracks = [
+      { Track: "Blinding Lights", Artists: "The Weeknd", Genres: "pop;synthwave" },
+      { Track: "Levitating", Artists: "Dua Lipa", Genres: "pop;disco" },
+      { Track: "Save Your Tears", Artists: "The Weeknd", Genres: "pop;synthwave" },
+      { Track: "Shared Track 1", Artists: "Common Artist", Genres: "pop" },
+      { Track: "Shared Track 2", Artists: "Another Common Artist", Genres: "rock" }
+    ];
+    
+    const sampleUser1Artists = [
+      { artist: "Drake", count: "48" },
+      { artist: "Travis Scott", count: "17" },
+      { artist: "Future", count: "13" },
+      { artist: "OHGEESY", count: "12" },
+      { artist: "Kendrick Lamar", count: "10" },
+      { artist: "The Weeknd", count: "8" },
+      { artist: "Kanye West", count: "7" },
+      { artist: "Common Artist", count: "5" }
+    ];
+    
+    const sampleUser2Artists = [
+      { artist: "The Weeknd", count: "25" },
+      { artist: "Dua Lipa", count: "18" },
+      { artist: "Ariana Grande", count: "15" },
+      { artist: "Post Malone", count: "12" },
+      { artist: "Taylor Swift", count: "10" },
+      { artist: "Common Artist", count: "8" }
+    ];
+    
+    // Global variables to store comparison results
+    let trackComparison = { onlyA: [], onlyB: [], both: [] };
+    
+    // Function to initialize visualizations
+    function initVisualizations() {
+      // Compare track lists
+      trackComparison = compareLists(sampleUser1Tracks, sampleUser2Tracks, 'Track');
+      
+      // Create visualizations
+      createVennDiagram(trackComparison);
+      createBarChart(sampleUser1Artists, sampleUser2Artists);
+    }
+    
+    // Function to create Venn diagram
+    function createVennDiagram(comparison) {
+      const { onlyA, onlyB, both } = comparison;
+      
+      console.log("Venn diagram data:", {
+        onlyUser1: onlyA.length,
+        onlyUser2: onlyB.length,
+        shared: both.length
+      });
+      
+      // Set up dimensions
+      const width = 500;
+      const height = 400;
+      const radius = 120;
+      
+      // Create SVG
+      const svg = d3.select("#venn-container")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+      
+      // Create circles
+      svg.append("circle")
+        .attr("cx", width / 2 - 70)
+        .attr("cy", height / 2)
+        .attr("r", radius)
+        .attr("class", "circle-user1");
+      
+      svg.append("circle")
+        .attr("cx", width / 2 + 70)
+        .attr("cy", height / 2)
+        .attr("r", radius)
+        .attr("class", "circle-user2");
+      
+      // Add labels
+      svg.append("text")
+        .attr("x", width / 2 - 150)
+        .attr("y", height / 2 - 20)
+        .attr("text-anchor", "middle")
+        .text("User 1");
+      
+      svg.append("text")
+        .attr("x", width / 2 - 150)
+        .attr("y", height / 2 + 10)
+        .attr("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .style("fill", "#1DB954")
+        .text(`(${onlyA.length})`);
+      
+      svg.append("text")
+        .attr("x", width / 2 + 150)
+        .attr("y", height / 2 - 20)
+        .attr("text-anchor", "middle")
+        .text("User 2");
+      
+      svg.append("text")
+        .attr("x", width / 2 + 150)
+        .attr("y", height / 2 + 10)
+        .attr("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .text(`(${onlyB.length})`);
+      
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2 - 20)
+        .attr("text-anchor", "middle")
+        .text("Shared");
+      
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2 + 10)
+        .attr("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .text(`(${both.length})`);
+      
+      // Add interaction areas
+      // User 1 only area
+      svg.append("circle")
+        .attr("cx", width / 2 - 150)
+        .attr("cy", height / 2)
+        .attr("r", 60)
+        .attr("class", "interaction-area")
+        .on("click", function() {
+          updateTrackList(onlyA, "User 1 Only Tracks");
+        });
+      
+      // User 2 only area
+      svg.append("circle")
+        .attr("cx", width / 2 + 150)
+        .attr("cy", height / 2)
+        .attr("r", 60)
+        .attr("class", "interaction-area")
+        .on("click", function() {
+          updateTrackList(onlyB, "User 2 Only Tracks");
+        });
+      
+      // Shared area
+      svg.append("circle")
+        .attr("cx", width / 2)
+        .attr("cy", height / 2)
+        .attr("r", 60)
+        .attr("class", "interaction-area")
+        .on("click", function() {
+          updateTrackList(both, "Shared Tracks");
+        });
+    }
+    
+    // Function to update the track list
+    function updateTrackList(tracks, title) {
+      // Update title
+      document.getElementById("track-list-title").textContent = title;
+      
+      // Get track list element
+      const trackList = document.getElementById("track-list");
+      
+      // Clear current list
+      trackList.innerHTML = "";
+      
+      // Add tracks (limited to 50)
+      const displayTracks = tracks.slice(0, 50);
+      
+      displayTracks.forEach(track => {
+        const li = document.createElement("li");
+        li.className = "track-item";
+        
+        const trackName = document.createElement("div");
+        trackName.className = "track-name";
+        trackName.textContent = track.Track;
+        
+        const trackArtist = document.createElement("div");
+        trackArtist.className = "track-artist";
+        trackArtist.textContent = track.Artists;
+        
+        li.appendChild(trackName);
+        li.appendChild(trackArtist);
+        trackList.appendChild(li);
+      });
+      
+      // Add count if more than 50
+      if (tracks.length > 50) {
+        const li = document.createElement("li");
+        li.className = "track-item";
+        li.textContent = `...and ${tracks.length - 50} more tracks`;
+        trackList.appendChild(li);
+      }
+    }
+    
+    // Function to create bar chart
+    function createBarChart(user1Artists, user2Artists) {
+      // Get top 10 artists
+      const top10User1 = getTopItems(user1Artists, 10);
+      const top10User2 = getTopItems(user2Artists, 10);
+      
+      console.log("Bar chart data:", {
+        top10User1: top10User1.length,
+        top10User2: top10User2.length
+      });
+      
+      // Set up dimensions
+      const margin = { top: 30, right: 30, bottom: 70, left: 200 };
+      const width = 800 - margin.left - margin.right;
+      const height = 500 - margin.top - margin.bottom;
+      
+      // Create SVG
+      const svg = d3.select("#bar-container")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+      
+      // Combine data for scale calculation
+      const combinedData = [...top10User1, ...top10User2];
+      
+      // Create scales
+      const xScale = d3.scaleLinear()
+        .domain([0, d3.max(combinedData, d => d.count) * 1.1])
+        .range([0, width]);
+      
+      // Get unique artist names
+      const allArtists = Array.from(new Set([
+        ...top10User1.map(d => d.name),
+        ...top10User2.map(d => d.name)
+      ]));
+      
+      // Sort artists by total count
+      allArtists.sort((a, b) => {
+        const countA = (top10User1.find(d => d.name === a)?.count || 0) + 
+                       (top10User2.find(d => d.name === a)?.count || 0);
+        const countB = (top10User1.find(d => d.name === b)?.count || 0) + 
+                       (top10User2.find(d => d.name === b)?.count || 0);
+        return countB - countA;
+      });
+      
+      // Limit to top 10 combined artists
+      const top10Artists = allArtists.slice(0, 10);
+      
+      const yScale = d3.scaleBand()
+        .domain(top10Artists)
+        .range([0, height])
+        .padding(0.3);
+      
+      // Add X axis
+      svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .attr("class", "axis")
+        .call(d3.axisBottom(xScale));
+      
+      // Add Y axis
+      svg.append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(yScale));
+      
+      // Add X axis label
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height + 40)
+        .style("text-anchor", "middle")
+        .text("Frequency");
+      
+      // Draw bars for User 1
+      svg.selectAll(".bar-user1")
+        .data(top10Artists)
+        .enter()
+        .append("rect")
+        .attr("class", "bar-user1")
+        .attr("y", d => yScale(d))
+        .attr("height", yScale.bandwidth() / 2)
+        .attr("x", 0)
+        .attr("width", d => {
+          const artist = top10User1.find(a => a.name === d);
+          return artist ? xScale(artist.count) : 0;
+        })
+        .attr("rx", 3)
+        .attr("ry", 3);
+      
+      // Draw bars for User 2
+      svg.selectAll(".bar-user2")
+        .data(top10Artists)
+        .enter()
+        .append("rect")
+        .attr("class", "bar-user2")
+        .attr("y", d => yScale(d) + yScale.bandwidth() / 2)
+        .attr("height", yScale.bandwidth() / 2)
+        .attr("x", 0)
+        .attr("width", d => {
+          const artist = top10User2.find(a => a.name === d);
+          return artist ? xScale(artist.count) : 0;
+        })
+        .attr("rx", 3)
+        .attr("ry", 3);
+      
+      // Add legend
+      const legend = svg.append("g")
+        .attr("transform", `translate(${width - 100}, -20)`);
+      
+      legend.append("rect")
+        .attr("width", 18)
+        .attr("height", 18)
+        .attr("class", "bar-user1");
+      
+      legend.append("text")
+        .attr("x", 24)
+        .attr("y", 14)
+        .text("User 1");
+      
+      legend.append("rect")
+        .attr("width", 18)
+        .attr("height", 18)
+        .attr("class", "bar-user2")
+        .attr("y", 24);
+      
+      legend.append("text")
+        .attr("x", 24)
+        .attr("y", 38)
+        .text("User 2");
+    }
+    
+    // Helper function to compare lists
+    function compareLists(listA, listB, keyField) {
+      console.log("Comparing lists:", { listALength: listA.length, listBLength: listB.length });
+      
+      // Extract names from the data
+      const namesA = listA.map(item => item[keyField]).filter(Boolean);
+      const namesB = listB.map(item => item[keyField]).filter(Boolean);
+      
+      console.log("Extracted names:", { namesALength: namesA.length, namesBLength: namesB.length });
+      
+      const setA = new Set(namesA);
+      const setB = new Set(namesB);
+      
+      // Find items in both sets
+      const bothNames = [...setA].filter(x => setB.has(x));
+      
+      // Find items only in set A
+      const onlyANames = [...setA].filter(x => !setB.has(x));
+      
+      // Find items only in set B
+      const onlyBNames = [...setB].filter(x => !setA.has(x));
+      
+      // Convert back to full objects
+      const onlyA = onlyANames.map(name => {
+        return listA.find(item => item[keyField] === name);
+      }).filter(Boolean);
+      
+      const onlyB = onlyBNames.map(name => {
+        return listB.find(item => item[keyField] === name);
+      }).filter(Boolean);
+      
+      const both = bothNames.map(name => {
+        return listA.find(item => item[keyField] === name);
+      }).filter(Boolean);
+      
+      return { onlyA, onlyB, both };
+    }
+    
+    // Helper function to get top items with counts
+    function getTopItems(data, limit) {
+      // Extract artist names and counts
+      const items = data.map(item => ({
+        name: item.artist,
+        count: parseInt(item.count || "0", 10)
+      })).filter(item => item.name && !isNaN(item.count));
+      
+      // Sort by count
+      items.sort((a, b) => b.count - a.count);
+      
+      // Return top N items
+      return items.slice(0, limit);
+    }
+    
+    // Initialize visualizations when page loads
+    document.addEventListener("DOMContentLoaded", initVisualizations);
+  </script>
+</body>
+</html>
