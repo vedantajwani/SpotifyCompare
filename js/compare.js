@@ -1,7 +1,13 @@
 // js/compare.js
-import { getAuthURL } from './auth.js';
-import { fetchTopArtists, fetchTopTracks, countGenres } from './spotify.js';
+import { getAuthURL }            from './auth.js';
+import { fetchTopTracks, fetchArtistDetails } from './spotify.js';
+import { getArtistFrequencies, mergeArtistFrequencies } from './artistFrequency.js';
+import {
+  getCommonGenreFrequencies,
+  aggregateMainGenres
+} from './topGenres.js';
 
+// ─── OAuth helpers ────────────────────────────────────────────────────────────
 function logoutThenAuth(state) {
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
@@ -14,30 +20,62 @@ document.getElementById('connect-user1')
 document.getElementById('connect-user2')
   .addEventListener('click', () => logoutThenAuth('user2'));
 
-async function getArtists(user) {
-  const key = `artists_${user}`;
-  let list = JSON.parse(localStorage.getItem(key) || 'null');
-  if (!list) {
-    const token = localStorage.getItem(`spotify_token_${user}`);
-    if (!token) throw new Error(`No token for ${user}`);
-    list = await fetchTopArtists(token);
-    localStorage.setItem(key, JSON.stringify(list));
+// ─── Fetch up to 500 track objects (50 at a time) ─────────────────────────────
+async function getTopTrackObjects500(user) {
+  const token = localStorage.getItem(`spotify_token_${user}`);
+  if (!token) throw new Error(`No token for ${user}`);
+  const all = [];
+  const BATCH = 50;
+  for (let offset = 0; offset < 500; offset += BATCH) {
+    const page = await fetchTopTracks(token, BATCH, offset);
+    all.push(...page);
+    if (page.length < BATCH) break;
   }
-  return list;
+  return all;
 }
 
-async function getTracks(user) {
-  const key = `tracks_${user}`;
-  let list = JSON.parse(localStorage.getItem(key) || 'null');
-  if (!list) {
-    const token = localStorage.getItem(`spotify_token_${user}`);
-    if (!token) throw new Error(`No token for ${user}`);
-    list = await fetchTopTracks(token);
-    localStorage.setItem(key, JSON.stringify(list));
+// ─── Simplify track objects to { name, artists:[], genres:[] } ──────────────
+async function getTop500Simple(user) {
+  const token  = localStorage.getItem(`spotify_token_${user}`);
+  const tracks = await getTopTrackObjects500(user);
+
+  // collect unique artist IDs
+  const artistIds = Array.from(new Set(
+    tracks.flatMap(t => t.artists.map(a => a.id))
+  ));
+
+  // fetch artist genres in batches of 50
+  const artistDetails = [];
+  for (let i = 0; i < artistIds.length; i += 50) {
+    artistDetails.push(
+      ...(await fetchArtistDetails(token, artistIds.slice(i, i + 50)))
+    );
   }
-  return list;
+  const artistMap = new Map(artistDetails.map(a => [a.id, a.genres]));
+
+  return tracks.map(t => {
+    const artistNames = t.artists.map(a => a.name);
+    const genres = Array.from(new Set(
+      t.artists.flatMap(a => artistMap.get(a.id) || [])
+    ));
+    return { name: t.name, artists: artistNames, genres };
+  });
 }
 
+// ─── Convert simplified data to CSV text ─────────────────────────────────────
+function convertToCsv(data) {
+  const rows = [['Track','Artists','Genres']];
+  data.forEach(item => {
+    rows.push([
+      item.name.replace(/"/g,'""'),
+      item.artists.join(';').replace(/"/g,'""'),
+      item.genres.join(';').replace(/"/g,'""')
+    ]);
+  });
+  return rows.map(r => r.map(f => `"${f}"`).join(',')).join('\n');
+}
+
+// ─── Main compare routine ────────────────────────────────────────────────────
 async function doCompare() {
   const t1 = localStorage.getItem('spotify_token_user1');
   const t2 = localStorage.getItem('spotify_token_user2');
@@ -47,69 +85,56 @@ async function doCompare() {
   }
 
   try {
-    // 1) Fetch both users' data
-    const [a1, a2, tr1, tr2] = await Promise.all([
-      getArtists('user1'),
-      getArtists('user2'),
-      getTracks('user1'),
-      getTracks('user2')
+    // 1) Fetch & simplify both users' top 500
+    const [simple1, simple2] = await Promise.all([
+      getTop500Simple('user1'),
+      getTop500Simple('user2')
     ]);
 
-    // 2) Build side‑by‑side arrays
-    const topArtists = {
-      user1: a1.map(a => a.name),
-      user2: a2.map(a => a.name)
-    };
-    const topTracks = {
-      user1: tr1.map(t => t.name),
-      user2: tr2.map(t => t.name)
-    };
-    const g1 = countGenres(a1), g2 = countGenres(a2);
-    const topGenres = {
-      user1: Object.keys(g1),
-      user2: Object.keys(g2)
-    };
+    // 2) Convert to CSV
+    const csv1 = convertToCsv(simple1);
+    const csv2 = convertToCsv(simple2);
 
-    // 3) Compute commons
-    const commonArtists = topArtists.user1
-      .filter(name => topArtists.user2.includes(name));
-    const commonTracks  = topTracks.user1
-      .filter(name => topTracks.user2.includes(name));
-    const commonGenres  = topGenres.user1
-      .filter(g => topGenres.user2.includes(g));
+    // 3) Compute artist frequencies
+    const freqs1 = getArtistFrequencies(csv1);
+    const freqs2 = getArtistFrequencies(csv2);
+    const mergedArtistFreqs = mergeArtistFrequencies(freqs1, freqs2);
 
-    // 4) Render side‑by‑side
-    document.getElementById('artists-data').innerHTML =
-      `<strong>User 1:</strong>\n${JSON.stringify(topArtists.user1, null, 2)}\n\n` +
-      `<strong>User 2:</strong>\n${JSON.stringify(topArtists.user2, null, 2)}`;
+    // 4) Compute genre frequencies
+    const mergedGenreFreqs = await getCommonGenreFrequencies('user1', 'user2');
+    const aggregatedGenreFreqs = aggregateMainGenres(mergedGenreFreqs);
 
-    document.getElementById('tracks-data').innerHTML =
-      `<strong>User 1:</strong>\n${JSON.stringify(topTracks.user1, null, 2)}\n\n` +
-      `<strong>User 2:</strong>\n${JSON.stringify(topTracks.user2, null, 2)}`;
+    // 5) Store everything in localStorage & expose globally
+    localStorage.setItem('user1ArtistFreqs', JSON.stringify(freqs1));
+    localStorage.setItem('user2ArtistFreqs', JSON.stringify(freqs2));
+    localStorage.setItem('mergedArtistFreqs',  JSON.stringify(mergedArtistFreqs));
+    window.user1ArtistFreqs = freqs1;
+    window.user2ArtistFreqs = freqs2;
+    window.mergedArtistFreqs  = mergedArtistFreqs;
 
-    document.getElementById('genres-data').innerHTML =
-      `<strong>User 1:</strong>\n${JSON.stringify(topGenres.user1, null, 2)}\n\n` +
-      `<strong>User 2:</strong>\n${JSON.stringify(topGenres.user2, null, 2)}`;
+    localStorage.setItem('mergedGenreFreqs',      JSON.stringify(mergedGenreFreqs));
+    localStorage.setItem('aggregatedGenreFreqs', JSON.stringify(aggregatedGenreFreqs));
+    window.mergedGenreFreqs      = mergedGenreFreqs;
+    window.aggregatedGenreFreqs = aggregatedGenreFreqs;
 
-    // 5) Render commons
-    document.getElementById('common-artists').textContent =
-      JSON.stringify(commonArtists, null, 2);
-    document.getElementById('common-tracks').textContent =
-      JSON.stringify(commonTracks, null, 2);
-    document.getElementById('common-genres').textContent =
-      JSON.stringify(commonGenres, null, 2);
+    console.table(mergedArtistFreqs);
+    console.table(mergedGenreFreqs);
+    console.table(aggregatedGenreFreqs);
 
   } catch (err) {
     console.error('Compare error:', err);
-    alert(`Error during compare: ${err.message}`);
+    alert(`Error: ${err.message}`);
   }
 }
 
+// ─── Enable Compare button once both tokens are present ─────────────────────
 window.addEventListener('load', () => {
   const btn = document.getElementById('compare-button');
   if (
     localStorage.getItem('spotify_token_user1') &&
     localStorage.getItem('spotify_token_user2')
-  ) btn.disabled = false;
+  ) {
+    btn.disabled = false;
+  }
   btn.addEventListener('click', doCompare);
 });
