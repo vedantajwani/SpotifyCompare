@@ -1,7 +1,6 @@
 // js/barChart.js
-import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
 
-export function drawBarCharts(data1, data2) {
+function drawBarCharts(data1, data2) {
   // Clear previous visualization
   d3.select('#bar-container').selectAll('*').remove();
   
@@ -76,16 +75,16 @@ export function drawBarCharts(data1, data2) {
   
   // Create scales
   const xScale = d3.scaleLinear()
-    .domain([0, d3.max(combinedData, d => d.count) * 1.1]) // Add 10% padding
+    .domain([0, d3.max(combinedData, d => d.count) * 1.1])
     .range([0, width]);
   
-  // Get unique artist names from both datasets
+  // Get unique artist names
   const allArtists = Array.from(new Set([
     ...top10User1.map(d => d.name),
     ...top10User2.map(d => d.name)
   ]));
   
-  // Sort artists by total count (sum of both users)
+  // Sort artists by total count
   allArtists.sort((a, b) => {
     const countA = (top10User1.find(d => d.name === a)?.count || 0) + 
                    (top10User2.find(d => d.name === a)?.count || 0);
@@ -102,68 +101,48 @@ export function drawBarCharts(data1, data2) {
     .range([0, height])
     .padding(0.3);
   
-  // Add X axis with metallic styling
+  // Add X axis with dark text
   const xAxis = svg.append('g')
     .attr('transform', `translate(0,${height})`)
-    .call(d3.axisBottom(xScale))
-    .attr('class', 'axis');
+    .attr('class', 'axis')
+    .call(d3.axisBottom(xScale));
   
-  // Style the axis
-  xAxis.selectAll('path')
-    .style('stroke', '#666')
-    .style('stroke-width', 1);
-  
-  xAxis.selectAll('line')
-    .style('stroke', '#666')
-    .style('stroke-width', 1);
-  
+  // Make all X axis text dark
   xAxis.selectAll('text')
-    .style('fill', '#ccc')
-    .style('font-family', 'Montserrat, sans-serif')
+    .style('fill', '#ffffff')
     .style('font-size', '12px');
   
-  // Add X axis label
+  // Make X axis lines dark
+  xAxis.selectAll('path, line')
+    .style('stroke', '#666666')
+    .style('stroke-opacity', 0.8);
+  
+  // Add Y axis with dark text
+  const yAxis = svg.append('g')
+    .attr('class', 'axis')
+    .call(d3.axisLeft(yScale));
+  
+  // Make all Y axis text dark
+  yAxis.selectAll('text')
+    .style('fill', '#ffffff')
+    .style('font-size', '12px');
+  
+  // Make Y axis lines dark
+  yAxis.selectAll('path, line')
+    .style('stroke', '#666666')
+    .style('stroke-opacity', 0.8);
+  
+  // Add X axis label with dark text
   svg.append('text')
     .attr('x', width / 2)
     .attr('y', height + 40)
     .style('text-anchor', 'middle')
-    .style('fill', '#fff')
-    .style('font-family', 'Montserrat, sans-serif')
+    .style('fill', '#ffffff')
+    .style('font-weight', 'bold')
     .style('font-size', '14px')
     .text('Frequency');
   
-  // Add Y axis with metallic styling
-  const yAxis = svg.append('g')
-    .call(d3.axisLeft(yScale))
-    .attr('class', 'axis');
-  
-  // Style the axis
-  yAxis.selectAll('path')
-    .style('stroke', '#666')
-    .style('stroke-width', 1);
-  
-  yAxis.selectAll('line')
-    .style('stroke', '#666')
-    .style('stroke-width', 1);
-  
-  yAxis.selectAll('text')
-    .style('fill', '#fff')
-    .style('font-family', 'Montserrat, sans-serif')
-    .style('font-size', '12px');
-  
-  // Add grid lines
-  svg.selectAll('grid-line')
-    .data(xScale.ticks())
-    .enter()
-    .append('line')
-    .attr('x1', d => xScale(d))
-    .attr('y1', 0)
-    .attr('x2', d => xScale(d))
-    .attr('y2', height)
-    .style('stroke', 'rgba(255, 255, 255, 0.1)')
-    .style('stroke-width', 1);
-  
-  // Draw bars for User 1 with metallic effect
+  // Draw bars for User 1
   svg.selectAll('.bar-user1')
     .data(top10Artists)
     .enter()
@@ -176,42 +155,11 @@ export function drawBarCharts(data1, data2) {
       const artist = top10User1.find(a => a.name === d);
       return artist ? xScale(artist.count) : 0;
     })
-    .attr('fill', 'url(#bar-gradient-user1)')
-    .attr('rx', 3) // Rounded corners
+    .attr('rx', 3)
     .attr('ry', 3)
-    .style('filter', 'drop-shadow(0px 0px 3px rgba(29, 185, 84, 0.5))')
-    .on('mouseover', function(event, d) {
-      const artist = top10User1.find(a => a.name === d);
-      if (artist) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr('opacity', 0.8);
-        
-        // Show tooltip
-        const tooltip = d3.select('body').append('div')
-          .attr('class', 'tooltip')
-          .style('opacity', 0);
-        
-        tooltip.transition()
-          .duration(200)
-          .style('opacity', 1);
-        
-        tooltip.html(`<strong>User 1:</strong> ${artist.name}<br>Count: ${artist.count}`)
-          .style('left', (event.pageX + 10) + 'px')
-          .style('top', (event.pageY - 28) + 'px');
-      }
-    })
-    .on('mouseout', function() {
-      d3.select(this)
-        .transition()
-        .duration(200)
-        .attr('opacity', 1);
-      
-      d3.selectAll('.tooltip').remove();
-    });
+    .style('fill', 'url(#bar-gradient-user1)');
   
-  // Draw bars for User 2 with metallic effect
+  // Draw bars for User 2
   svg.selectAll('.bar-user2')
     .data(top10Artists)
     .enter()
@@ -224,98 +172,112 @@ export function drawBarCharts(data1, data2) {
       const artist = top10User2.find(a => a.name === d);
       return artist ? xScale(artist.count) : 0;
     })
-    .attr('fill', 'url(#bar-gradient-user2)')
-    .attr('rx', 3) // Rounded corners
+    .attr('rx', 3)
     .attr('ry', 3)
-    .style('filter', 'drop-shadow(0px 0px 3px rgba(0, 0, 0, 0.5))')
+    .style('fill', 'url(#bar-gradient-user2)');
+  
+  // Add legend with dark text
+  const legend = svg.append('g')
+    .attr('transform', `translate(${width - 100}, -20)`);
+  
+  legend.append('rect')
+    .attr('width', 18)
+    .attr('height', 18)
+    .attr('class', 'bar-user1')
+    .style('fill', 'url(#bar-gradient-user1)');
+  
+  legend.append('text')
+    .attr('x', 24)
+    .attr('y', 14)
+    .style('fill', '#ffffff')
+    .style('font-size', '12px')
+    .text('User 1');
+  
+  legend.append('rect')
+    .attr('width', 18)
+    .attr('height', 18)
+    .attr('class', 'bar-user2')
+    .attr('y', 24)
+    .style('fill', 'url(#bar-gradient-user2)');
+  
+  legend.append('text')
+    .attr('x', 24)
+    .attr('y', 38)
+    .style('fill', '#ffffff')
+    .style('font-size', '12px')
+    .text('User 2');
+  
+  // Create tooltip div
+  const tooltip = d3.select('body').append('div')
+    .attr('class', 'tooltip')
+    .style('opacity', 0);
+  
+  // Add hover effects for User 1 bars
+  svg.selectAll('.bar-user1')
     .on('mouseover', function(event, d) {
-      const artist = top10User2.find(a => a.name === d);
+      const artist = top10User1.find(a => a.name === d);
       if (artist) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr('opacity', 0.8);
-        
-        // Show tooltip
-        const tooltip = d3.select('body').append('div')
-          .attr('class', 'tooltip')
-          .style('opacity', 0);
-        
         tooltip.transition()
           .duration(200)
           .style('opacity', 1);
-        
-        tooltip.html(`<strong>User 2:</strong> ${artist.name}<br>Count: ${artist.count}`)
+        tooltip.html(`<div class="tooltip-header">User 1</div><div class="tooltip-content">${artist.name}<br>${artist.count} tracks</div>`)
           .style('left', (event.pageX + 10) + 'px')
           .style('top', (event.pageY - 28) + 'px');
       }
     })
     .on('mouseout', function() {
-      d3.select(this)
-        .transition()
-        .duration(200)
-        .attr('opacity', 1);
-      
-      d3.selectAll('.tooltip').remove();
+      tooltip.transition()
+        .duration(500)
+        .style('opacity', 0);
     });
   
-  // Add legend
-  const legend = svg.append('g')
-    .attr('transform', `translate(${width - 200}, -40)`);
-  
-  // User 1 legend
-  legend.append('rect')
-    .attr('width', 20)
-    .attr('height', 10)
-    .attr('rx', 3)
-    .attr('ry', 3)
-    .attr('fill', 'url(#bar-gradient-user1)');
-  
-  legend.append('text')
-    .attr('x', 30)
-    .attr('y', 9)
-    .text('User 1')
-    .style('font-family', 'Montserrat, sans-serif')
-    .style('font-size', '12px')
-    .style('fill', '#fff');
-  
-  // User 2 legend
-  legend.append('rect')
-    .attr('width', 20)
-    .attr('height', 10)
-    .attr('rx', 3)
-    .attr('ry', 3)
-    .attr('y', 20)
-    .attr('fill', 'url(#bar-gradient-user2)');
-  
-  legend.append('text')
-    .attr('x', 30)
-    .attr('y', 29)
-    .text('User 2')
-    .style('font-family', 'Montserrat, sans-serif')
-    .style('font-size', '12px')
-    .style('fill', '#fff');
+  // Add hover effects for User 2 bars
+  svg.selectAll('.bar-user2')
+    .on('mouseover', function(event, d) {
+      const artist = top10User2.find(a => a.name === d);
+      if (artist) {
+        tooltip.transition()
+          .duration(200)
+          .style('opacity', 1);
+        tooltip.html(`<div class="tooltip-header">User 2</div><div class="tooltip-content">${artist.name}<br>${artist.count} tracks</div>`)
+          .style('left', (event.pageX + 10) + 'px')
+          .style('top', (event.pageY - 28) + 'px');
+      }
+    })
+    .on('mouseout', function() {
+      tooltip.transition()
+        .duration(500)
+        .style('opacity', 0);
+    });
 }
 
 // Helper function to get top items with counts
 function getTopItems(data, limit) {
-  // Extract artist or track names and counts from CSV data
-  const items = {};
-  
-  data.forEach(item => {
-    const name = item.artist || item.track || '';
-    const count = parseInt(item.count) || 1;
-    
-    if (name) {
-      items[name] = (items[name] || 0) + count;
+  // Extract artist names and counts
+  const items = data.map(item => {
+    // Handle different data formats
+    if (item.artist && item.count) {
+      // Artist frequency format
+      return {
+        name: item.artist,
+        count: parseInt(item.count || "0", 10)
+      };
+    } else if (item.Track && item.Artists) {
+      // Track format - not used for bar chart currently
+      return {
+        name: item.Artists,
+        count: 1
+      };
+    } else {
+      // Unknown format
+      console.warn('Unknown data format:', item);
+      return null;
     }
-  });
+  }).filter(item => item && item.name && !isNaN(item.count));
   
-  // Convert to array and sort
-  const sortedItems = Object.keys(items)
-    .map(name => ({ name, count: items[name] }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, limit);
+  // Sort by count
+  items.sort((a, b) => b.count - a.count);
   
-  return sortedItems;
+  // Return top N items
+  return items.slice(0, limit);
 }

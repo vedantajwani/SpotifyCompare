@@ -1,5 +1,5 @@
 // js/compareArtists.js
-export function compareLists(listA, listB) {
+function compareLists(listA, listB) {
   console.log('Comparing lists:', { listALength: listA.length, listBLength: listB.length });
   
   // Extract track names from the CSV data

@@ -1,36 +1,16 @@
 // js/compare.js
-import { drawVenn } from './venn.js';
-import { drawBarCharts } from './barChart.js';
-import { compareLists } from './compareArtists.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM loaded, initializing visualizations');
   
-  // Load the Venn diagram with track data by default
+  // Load the Venn diagram with track data
   loadVennData();
   
-  // Set up event listeners for the bar chart checkboxes
-  const barChartCheckboxes = document.querySelectorAll('input[data-chart-type]');
-  
-  barChartCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
-      // Uncheck all other checkboxes
-      barChartCheckboxes.forEach(cb => {
-        if (cb !== checkbox) {
-          cb.checked = false;
-        }
-      });
-      
-      // Update bar chart visualization based on selected type
-      if (checkbox.checked) {
-        const chartType = checkbox.getAttribute('data-chart-type');
-        loadBarChartData(chartType);
-      }
-    });
-  });
-  
-  // Initial load with artists data for bar chart
+  // Load artist frequency data for bar chart
   loadBarChartData('artists');
+  
+  // Load genre data for bubble chart
+  loadBubbleChartData();
 });
 
 async function loadVennData() {
@@ -44,9 +24,13 @@ async function loadVennData() {
     console.log('Data loaded for Venn diagram:', { data1Length: data1.length, data2Length: data2.length });
     
     // Draw Venn diagram
-    const { onlyA, onlyB, both } = compareLists(data1, data2);
-    console.log('Comparison results:', { onlyA: onlyA.length, onlyB: onlyB.length, both: both.length });
-    drawVenn(onlyA, onlyB, both, 'tracks');
+    const comparison = compareLists(data1, data2);
+    console.log('Comparison results:', { 
+      onlyA: comparison.onlyA.length, 
+      onlyB: comparison.onlyB.length, 
+      both: comparison.both.length 
+    });
+    drawVenn(comparison.onlyA, comparison.onlyB, comparison.both, 'tracks');
   } catch (error) {
     console.error('Error loading Venn data:', error);
   }
@@ -73,6 +57,19 @@ async function loadBarChartData(chartType) {
     drawBarCharts(data1, data2);
   } catch (error) {
     console.error('Error loading bar chart data:', error);
+  }
+}
+
+async function loadBubbleChartData() {
+  console.log('Loading genre data for bubble chart');
+  try {
+    // Load genre data from the aggregated genre frequencies file
+    const genreData = await loadGenreData();
+    
+    // Draw bubble chart
+    drawBubbleChart(genreData);
+  } catch (error) {
+    console.error('Error loading bubble chart data:', error);
   }
 }
 

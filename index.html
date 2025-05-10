@@ -221,7 +221,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    #venn-container, #bar-container {
+    #venn-container, #bar-container, #bubble-container {
       width: 100%;
       height: 500px;
       position: relative;
@@ -229,15 +229,14 @@
     
     .tooltip {
       position: absolute;
+      padding: 8px;
       background: rgba(25, 20, 20, 0.9);
-      color: #ffffff;
-      padding: 10px 15px;
-      border-radius: 5px;
-      font-size: 0.9rem;
+      color: white;
+      border-radius: 4px;
       pointer-events: none;
-      z-index: 100;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      border: 1px solid #1DB954;
+      font-size: 12px;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
     }
     
     .venn-section {
@@ -287,6 +286,51 @@
     .track-artist {
       font-size: 0.9em;
       color: #aaa;
+    }
+    
+    circle {
+      opacity: 0.7;
+      stroke-width: 2px;
+      transition: opacity 0.3s ease;
+    }
+    
+    circle:hover {
+      opacity: 0.9;
+      cursor: pointer;
+    }
+    
+    .circle-user1 {
+      fill: #1DB954;
+      stroke: #1DB954;
+    }
+    
+    .circle-user2 {
+      fill: #191414;
+      stroke: #444444;
+    }
+    
+    .interaction-area {
+      fill: transparent;
+      cursor: pointer;
+    }
+    
+    .interaction-area:hover {
+      fill: rgba(255, 255, 255, 0.05);
+    }
+    
+    text {
+      fill: white;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .axis path,
+    .axis line {
+      stroke: #666;
+    }
+    
+    .axis text {
+      fill: white;
+      font-size: 12px;
     }
     
     @media (max-width: 768px) {
@@ -340,29 +384,32 @@
             <h2>How do your listening habits differ?</h2>
             <p>These horizontal bar charts show the number of songs per artist in each user's library, highlighting differences in listening preferences.</p>
           </div>
-          <div class="checkbox-toggle-container">
-            <label class="checkbox-toggle">
-              <input type="checkbox" data-chart-type="artists" checked>
-              <span class="checkmark"></span>
-              <span class="label">Artists Frequency</span>
-            </label>
-            <label class="checkbox-toggle">
-              <input type="checkbox" data-chart-type="tracks">
-              <span class="checkmark"></span>
-              <span class="label">Tracks Frequency</span>
-            </label>
-          </div>
           <div class="visualization-container">
             <div id="bar-container"></div>
+          </div>
+        </div>
+        
+        <div class="visualization-section">
+          <div class="section-title">
+            <h2>What genres dominate your music taste?</h2>
+            <p>This bubble chart visualizes the distribution of music genres, with bubble sizes representing the frequency of each genre in your combined libraries.</p>
+          </div>
+          <div class="visualization-container">
+            <div id="bubble-container"></div>
           </div>
         </div>
       </div>
     </section>
   </div>
 
-  <!-- Load D3.js -->
-  <script src="assets/d3.min.js"></script>
+  <!-- Load D3.js from CDN -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  
   <!-- Load our visualization scripts -->
-  <script type="module" src="js/compare.js"></script>
+  <script src="js/compareArtists.js"></script>
+  <script src="js/venn.js"></script>
+  <script src="js/barChart.js"></script>
+  <script src="js/bubbleChart.js"></script>
+  <script src="js/compare.js"></script>
 </body>
 </html>

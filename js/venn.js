@@ -1,7 +1,7 @@
 // js/venn.js
-import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
 
-export function drawVenn(onlyA, onlyB, both, dataType = 'tracks') {
+// Function to draw Venn diagram
+function drawVenn(onlyA, onlyB, both, dataType = 'tracks') {
   console.log('Drawing Venn diagram with:', { 
     onlyA: onlyA.length, 
     onlyB: onlyB.length, 
@@ -76,7 +76,7 @@ export function drawVenn(onlyA, onlyB, both, dataType = 'tracks') {
     .attr('stop-color', '#000000')
     .attr('stop-opacity', 1);
   
-  // Create a subtle pattern for the background
+  // Add subtle pattern for texture
   const pattern = defs.append('pattern')
     .attr('id', 'subtle-pattern')
     .attr('width', 10)
@@ -93,14 +93,15 @@ export function drawVenn(onlyA, onlyB, both, dataType = 'tracks') {
     .attr('d', 'M0,0 L2,0 L2,2 L0,2 Z')
     .attr('fill', 'rgba(255, 255, 255, 0.03)');
   
-  // Create circles with metallic gradients
+  // Draw circles
   const circleA = svg.append('circle')
     .attr('cx', centers[0].x)
     .attr('cy', centers[0].y)
     .attr('r', r)
+    .attr('class', 'circle-user1')
     .style('fill', 'url(#metallic-green)')
     .style('fill-opacity', 0.7)
-    .style('stroke', '#1DB954')
+    .style('stroke', colorA)
     .style('stroke-width', 2)
     .style('filter', 'drop-shadow(0px 0px 10px rgba(29, 185, 84, 0.3))');
   
@@ -108,29 +109,28 @@ export function drawVenn(onlyA, onlyB, both, dataType = 'tracks') {
     .attr('cx', centers[1].x)
     .attr('cy', centers[1].y)
     .attr('r', r)
+    .attr('class', 'circle-user2')
     .style('fill', 'url(#metallic-black)')
     .style('fill-opacity', 0.7)
     .style('stroke', '#444444')
     .style('stroke-width', 2)
     .style('filter', 'drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5))');
   
-  // Add labels with premium styling
-  const labelStyle = (selection) => {
-    selection
+  // Helper function to create label text
+  const createLabelText = (x, y, text) => {
+    return svg.append('text')
+      .attr('x', x)
+      .attr('y', y)
+      .attr('text-anchor', 'middle')
       .style('font-family', 'Montserrat, sans-serif')
       .style('font-weight', '600')
       .style('font-size', '14px')
       .style('fill', '#ffffff')
-      .style('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.5)');
+      .style('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.2)');
   };
   
   // User 1 label
-  svg.append('text')
-    .attr('x', centers[0].x - 80)
-    .attr('y', centers[0].y - 20)
-    .attr('text-anchor', 'middle')
-    .text(`User 1 Only`)
-    .call(labelStyle);
+  createLabelText(centers[0].x - 80, centers[0].y - 20, 'User 1 Only');
   
   svg.append('text')
     .attr('x', centers[0].x - 80)
@@ -139,17 +139,12 @@ export function drawVenn(onlyA, onlyB, both, dataType = 'tracks') {
     .style('font-family', 'Montserrat, sans-serif')
     .style('font-weight', '700')
     .style('font-size', '18px')
-    .style('fill', '#1DB954')
-    .style('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.5)')
+    .style('fill', colorA)
+    .style('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.2)')
     .text(`(${onlyA.length})`);
   
   // User 2 label
-  svg.append('text')
-    .attr('x', centers[1].x + 80)
-    .attr('y', centers[1].y - 20)
-    .attr('text-anchor', 'middle')
-    .text(`User 2 Only`)
-    .call(labelStyle);
+  createLabelText(centers[1].x + 80, centers[1].y - 20, 'User 2 Only');
   
   svg.append('text')
     .attr('x', centers[1].x + 80)
@@ -159,112 +154,151 @@ export function drawVenn(onlyA, onlyB, both, dataType = 'tracks') {
     .style('font-weight', '700')
     .style('font-size', '18px')
     .style('fill', '#ffffff')
-    .style('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.5)')
+    .style('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.2)')
     .text(`(${onlyB.length})`);
   
   // Shared label
-  svg.append('text')
-    .attr('x', (centers[0].x + centers[1].x) / 2)
-    .attr('y', centers[0].y - 20)
-    .attr('text-anchor', 'middle')
-    .text(`Shared`)
-    .call(labelStyle);
+  createLabelText(width/2, centers[0].y - 20, 'Both Users');
   
   svg.append('text')
-    .attr('x', (centers[0].x + centers[1].x) / 2)
+    .attr('x', width/2)
     .attr('y', centers[0].y + 10)
     .attr('text-anchor', 'middle')
     .style('font-family', 'Montserrat, sans-serif')
     .style('font-weight', '700')
     .style('font-size', '18px')
     .style('fill', '#ffffff')
-    .style('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.5)')
+    .style('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.2)')
     .text(`(${both.length})`);
   
-  // Add interaction for the intersection area
-  if (both.length > 0) {
-    // Create a transparent overlay for the intersection area
-    const intersectionX = (centers[0].x + centers[1].x) / 2;
-    const intersectionY = centers[0].y;
-    
-    svg.append('circle')
-      .attr('cx', intersectionX)
-      .attr('cy', intersectionY)
-      .attr('r', 60)
-      .style('fill', 'transparent')
-      .style('cursor', 'pointer')
-      .on('click', function() {
-        updateTrackList(both, "Shared Tracks");
-      });
-  }
+  // Add interaction areas
+  const tooltip = d3.select('body')
+    .append('div')
+    .attr('class', 'tooltip')
+    .style('opacity', 0);
   
-  // Add interaction for User 1 only area
-  if (onlyA.length > 0) {
-    // Create a transparent overlay for User 1 area
-    svg.append('circle')
-      .attr('cx', centers[0].x - 80)
-      .attr('cy', centers[0].y)
-      .attr('r', 60)
-      .style('fill', 'transparent')
-      .style('cursor', 'pointer')
-      .on('click', function() {
-        updateTrackList(onlyA, "User 1 Only Tracks");
+  // Helper function to show tooltip with track list
+  const showTooltip = (event, tracks, title) => {
+    if (tracks.length > 0) {
+      tooltip.transition()
+        .duration(200)
+        .style('opacity', 1);
+      
+      // Create tooltip content
+      let content = `<div class="tooltip-header">${title}</div><div class="tooltip-content">`;
+      
+      // Add up to 10 tracks to tooltip
+      const displayTracks = tracks.slice(0, 10);
+      displayTracks.forEach(track => {
+        content += `<div class="tooltip-item">${track.Track} - ${track.Artists}</div>`;
       });
-  }
+      
+      if (tracks.length > 10) {
+        content += `<div class="tooltip-item">...and ${tracks.length - 10} more</div>`;
+      }
+      
+      content += '</div>';
+      
+      tooltip.html(content)
+        .style('left', (event.pageX + 10) + 'px')
+        .style('top', (event.pageY - 28) + 'px');
+    }
+  };
   
-  // Add interaction for User 2 only area
-  if (onlyB.length > 0) {
-    // Create a transparent overlay for User 2 area
-    svg.append('circle')
-      .attr('cx', centers[1].x + 80)
-      .attr('cy', centers[1].y)
-      .attr('r', 60)
-      .style('fill', 'transparent')
-      .style('cursor', 'pointer')
-      .on('click', function() {
-        updateTrackList(onlyB, "User 2 Only Tracks");
-      });
-  }
+  // Add interaction area for User 1 only
+  svg.append('circle')
+    .attr('cx', centers[0].x - r/2)
+    .attr('cy', centers[0].y)
+    .attr('r', r/2)
+    .attr('class', 'interaction-area')
+    .style('cursor', 'pointer')
+    .on('click', () => {
+      updateTrackList(onlyA, 'User 1 Only');
+    })
+    .on('mouseover', function(event) {
+      d3.select(this).style('fill', 'rgba(29, 185, 84, 0.1)');
+      showTooltip(event, onlyA, 'User 1 Only');
+    })
+    .on('mouseout', function() {
+      d3.select(this).style('fill', 'transparent');
+      tooltip.transition()
+        .duration(500)
+        .style('opacity', 0);
+    });
+  
+  // Add interaction area for User 2 only
+  svg.append('circle')
+    .attr('cx', centers[1].x + r/2)
+    .attr('cy', centers[1].y)
+    .attr('r', r/2)
+    .attr('class', 'interaction-area')
+    .style('cursor', 'pointer')
+    .on('click', () => {
+      updateTrackList(onlyB, 'User 2 Only');
+    })
+    .on('mouseover', function(event) {
+      d3.select(this).style('fill', 'rgba(25, 20, 20, 0.1)');
+      showTooltip(event, onlyB, 'User 2 Only');
+    })
+    .on('mouseout', function() {
+      d3.select(this).style('fill', 'transparent');
+      tooltip.transition()
+        .duration(500)
+        .style('opacity', 0);
+    });
+  
+  // Add interaction area for shared
+  svg.append('circle')
+    .attr('cx', width/2)
+    .attr('cy', centers[0].y)
+    .attr('r', r/3)
+    .attr('class', 'interaction-area')
+    .style('cursor', 'pointer')
+    .on('click', () => {
+      updateTrackList(both, 'Shared Tracks');
+    })
+    .on('mouseover', function(event) {
+      d3.select(this).style('fill', 'rgba(255, 255, 255, 0.1)');
+      showTooltip(event, both, 'Shared Tracks');
+    })
+    .on('mouseout', function() {
+      d3.select(this).style('fill', 'transparent');
+      tooltip.transition()
+        .duration(500)
+        .style('opacity', 0);
+    });
 }
 
 // Function to update the track list
 function updateTrackList(tracks, title) {
-  console.log(`Updating track list with ${tracks.length} tracks for "${title}"`);
+  const trackListTitle = document.getElementById('track-list-title');
+  const trackList = document.getElementById('track-list');
   
   // Update title
-  document.getElementById("track-list-title").textContent = title;
+  trackListTitle.textContent = `${title} (${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'})`;
   
-  // Get track list element
-  const trackList = document.getElementById("track-list");
+  // Clear existing list
+  trackList.innerHTML = '';
   
-  // Clear current list
-  trackList.innerHTML = "";
-  
-  // Add tracks (limited to 50)
-  const displayTracks = tracks.slice(0, 50);
-  
-  displayTracks.forEach(track => {
-    const li = document.createElement("li");
-    li.className = "track-item";
+  // Add tracks to list
+  if (tracks.length > 0) {
+    tracks.slice(0, 50).forEach(track => {
+      const li = document.createElement('li');
+      li.className = 'track-item';
+      li.innerHTML = `<span class="track-name">${track.Track}</span><br><span class="track-artist">${track.Artists}</span>`;
+      trackList.appendChild(li);
+    });
     
-    const trackName = document.createElement("div");
-    trackName.className = "track-name";
-    trackName.textContent = track.Track || track.track || track.artist || "Unknown";
-    
-    const trackArtist = document.createElement("div");
-    trackArtist.className = "track-artist";
-    trackArtist.textContent = track.Artists || track.artists || "";
-    
-    li.appendChild(trackName);
-    li.appendChild(trackArtist);
-    trackList.appendChild(li);
-  });
-  
-  // Add count if more than 50
-  if (tracks.length > 50) {
-    const li = document.createElement("li");
-    li.className = "track-item";
-    li.textContent = `...and ${tracks.length - 50} more tracks`;
+    if (tracks.length > 50) {
+      const li = document.createElement('li');
+      li.className = 'track-item';
+      li.textContent = `...and ${tracks.length - 50} more tracks`;
+      trackList.appendChild(li);
+    }
+  } else {
+    const li = document.createElement('li');
+    li.className = 'track-item';
+    li.textContent = 'No tracks found';
     trackList.appendChild(li);
   }
 }
