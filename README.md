@@ -1,4 +1,5 @@
 Spotify Compare
+
 Discover how your music taste stacks up against your friends through interactive data visualizations.
 🎵 Overview
 Spotify Compare goes beyond Spotify Wrapped by providing side-by-side comparisons of listening preferences between two users. Using the Spotify API, this project visualizes shared music tastes, unique preferences, and listening patterns through three interactive data visualizations:
@@ -27,3 +28,4 @@ Data Processing: CSV parsing and manipulation
 
 # Process Book
 [Click the Link] (https://docs.google.com/presentation/d/18NmXnw7hGBSUjYXx_Cq50SNibNgZCZEwgGf29Mt1DTU/edit?usp=sharing)
+
